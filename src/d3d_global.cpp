@@ -634,6 +634,8 @@ static bool D3DGlobal_SetupPresentParams( int width, int height, int bpp, BOOL w
 
 OPENGL_API HGLRC WINAPI wrap_wglCreateContext( HDC hdc )
 {
+	logPrintf("wrap_wglCreateContext( %x )\n", hdc);
+
 	if (D3DGlobal.hGLRC)	//don't create multiple contexts
 	{
 		logPrintf("wglCreateContext: attempt to create additional context, ignored\n");
@@ -916,6 +918,8 @@ OPENGL_API HDC WINAPI wrap_wglGetCurrentDC( void )
 
 OPENGL_API BOOL WINAPI wrap_wglMakeCurrent(HDC hdc, HGLRC hglrc)
 {
+	logPrintf("wrap_wglMakeCurrent( %x, %x )\n", hdc, hglrc);
+
 	if (hglrc != NULL && hdc != NULL) {
 		if (!D3DGlobal.pDevice)
 			return FALSE;
@@ -1091,16 +1095,42 @@ static PIXELFORMATDESCRIPTOR s_d3dPixelFormat =
 	0, 0, 0                             // Layer Masks Ignored
 };
 
+static void DumpPixelFormat( PIXELFORMATDESCRIPTOR *pfd ) 
+{
+	logPrintf("DumpPixelFormat: 0x%x\n", pfd);
+	if (!pfd) return;
+
+	logPrintf(" Size = %i\n", pfd->nSize);
+	logPrintf(" Version = %i\n", pfd->nVersion);
+	logPrintf(" Flags = %i\n", pfd->dwFlags);
+	logPrintf(" Pixel Type = %i\n", pfd->iPixelType);
+	logPrintf(" Color Bits = %i\n", pfd->cColorBits);
+	logPrintf(" Red Bits = %i\n", pfd->cRedBits);
+	logPrintf(" Green Bits = %i\n", pfd->cGreenBits);
+	logPrintf(" Blue Bits = %i\n", pfd->cBlueBits);
+	logPrintf(" Alpha Bits = %i\n", pfd->cAlphaBits);
+	logPrintf(" Accum Bits = %i\n", pfd->cAccumBits);
+	logPrintf(" Depth Bits = %i\n", pfd->cDepthBits);
+	logPrintf(" Stencil Bits = %i\n", pfd->cStencilBits);
+	logPrintf(" Aux Buffers = %i\n", pfd->cAuxBuffers);
+	logPrintf(" Layer Type = %i\n", pfd->iLayerType);
+	logPrintf(" Layer Mask = %i\n", pfd->dwLayerMask);
+}
+
 OPENGL_API int WINAPI wrap_wglChoosePixelFormat(HDC hdc, PIXELFORMATDESCRIPTOR *pfd) 
 { 
-	s_d3dPixelFormat.cColorBits = pfd->cColorBits;
-	D3DGlobal.iBPP = pfd->cColorBits;
-	return 1;
+	if ( pfd ) {
+		s_d3dPixelFormat.cColorBits = pfd->cColorBits;
+		D3DGlobal.iBPP = pfd->cColorBits;
+		return 1;
+	} 
+
+	return 0;
 }
 
 OPENGL_API int WINAPI wrap_wglDescribePixelFormat(HDC hdc, int p, UINT up, LPPIXELFORMATDESCRIPTOR pfd) 
 { 
-	memcpy( pfd, &s_d3dPixelFormat, sizeof(s_d3dPixelFormat) );
+	if ( pfd ) memcpy( pfd, &s_d3dPixelFormat, sizeof(s_d3dPixelFormat) );
 	return 1;
 }
 
@@ -1156,21 +1186,25 @@ OPENGL_API BOOL WINAPI wrap_wglShareLists(HGLRC, HGLRC)
 }
 OPENGL_API BOOL WINAPI wrap_wglUseFontBitmapsA(HDC, DWORD, DWORD, DWORD)
 {
+	logPrintf("WARNING: wglUseFontBitmapsA is not supported\n");
 	return FALSE;
 }
 OPENGL_API BOOL WINAPI wrap_wglUseFontBitmapsW(HDC, DWORD, DWORD, DWORD)
 {
+	logPrintf("WARNING: wglUseFontBitmapsW is not supported\n");
 	return FALSE;
 }
 
 OPENGL_API BOOL WINAPI wrap_wglUseFontOutlinesA(HDC, DWORD, DWORD, DWORD, FLOAT,
 												FLOAT, int, LPGLYPHMETRICSFLOAT)
 {
+	logPrintf("WARNING: wglUseFontOutlinesA is not supported\n");
 	return FALSE;
 }
 OPENGL_API BOOL WINAPI wrap_wglUseFontOutlinesW(HDC, DWORD, DWORD, DWORD, FLOAT,
 												FLOAT, int, LPGLYPHMETRICSFLOAT)
 {
+	logPrintf("WARNING: wglUseFontOutlinesW is not supported\n");
 	return FALSE;
 }
 
