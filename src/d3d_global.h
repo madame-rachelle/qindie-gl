@@ -130,6 +130,7 @@ typedef struct D3DGlobal_s
 	HRESULT					lastError;
 	char					*szRendererName;
 	char					*szExtensions;
+	char					*szWExtensions;
 	D3DMatrixStack			*modelviewMatrixStack;
 	D3DMatrixStack			*projectionMatrixStack;
 	D3DMatrixStack			*textureMatrixStack[MAX_D3D_TMU];

@@ -116,11 +116,11 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 	{
 		case DLL_PROCESS_ATTACH:
 			logInit();
-			logPrintf("DllMain( DLL_PROCESS_ATTACH )\n");
+			//logPrintf("DllMain( DLL_PROCESS_ATTACH )\n");
 			D3DGlobal_Init( true );
 			break;
 		case DLL_PROCESS_DETACH:
-			logPrintf("DllMain( DLL_PROCESS_DETACH )\n");
+			//logPrintf("DllMain( DLL_PROCESS_DETACH )\n");
 			D3DGlobal_Cleanup( true );
 			logShutdown();
 			break;

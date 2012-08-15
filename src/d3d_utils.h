@@ -129,6 +129,8 @@ inline DWORD UTIL_GLtoD3DTextureCombineColorArg( GLenum func, GLenum op )
 	switch (func) {
 	default:
 	case GL_PREVIOUS_ARB: arg = D3DTA_CURRENT; break;
+	case GL_TEXTURE0_ARB:
+	case GL_TEXTURE0_SGIS:
 	case GL_TEXTURE: arg = D3DTA_TEXTURE; break;
 	case GL_PRIMARY_COLOR_ARB: arg = D3DTA_DIFFUSE; break;
 	case GL_CONSTANT_ARB: arg = D3DTA_TFACTOR; break;

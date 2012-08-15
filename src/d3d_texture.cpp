@@ -1240,8 +1240,8 @@ OPENGL_API void WINAPI glTexEnvfv(GLenum target,  GLenum pname,  const GLfloat *
 			case GL_TEXTURE_ENV_MODE:
 				{
 					GLenum newMode = (GLenum)params[0];
-					if (D3DState.TextureState.textureEnvMode[D3DState.TextureState.currentTMU] != newMode) {
-						D3DState.TextureState.textureEnvMode[D3DState.TextureState.currentTMU] = newMode;
+					if (D3DState.TextureState.TextureCombineState[D3DState.TextureState.currentTMU].envMode != newMode) {
+						D3DState.TextureState.TextureCombineState[D3DState.TextureState.currentTMU].envMode = newMode;
 						D3DState.TextureState.textureEnvModeChanged[D3DState.TextureState.currentTMU] = TRUE;
 						D3DState.TextureState.textureSamplerStateChanged = TRUE;
 					}
@@ -1501,7 +1501,7 @@ OPENGL_API void WINAPI glGetTexEnvfv(GLenum target,  GLenum pname,  GLfloat *par
 		{
 			switch (pname) {
 			case GL_TEXTURE_ENV_MODE:
-				params[0] = (GLfloat)D3DState.TextureState.textureEnvMode[D3DState.TextureState.currentTMU];
+				params[0] = (GLfloat)D3DState.TextureState.TextureCombineState[D3DState.TextureState.currentTMU].envMode;
 				break;
 			case GL_TEXTURE_ENV_COLOR:
 				params[0] = ((GLfloat)((D3DState.TextureState.textureEnvColor >> 16) & 0xFF) / 255.0f );

@@ -24,6 +24,7 @@
 #include "d3d_utils.h"
 #include "d3d_texture.h"
 #include "d3d_matrix_stack.h"
+#include "d3d_combiners.h"
 
 D3DState_t D3DState;
 static D3DState_t D3DStateCopy;
@@ -301,6 +302,7 @@ static void D3DState_SetTextureEnvCombine( D3DState_t *state, int stage, int sam
 //	logPrintf("Stage %i, sampler %i: COLOR op %d, arg1 %d, arg2 %d, scale %d\n", stage, sampler, colorOp, colorArg1, colorArg2, D3DState.TextureState.TextureCombineState[stage].colorScale);
 //	logPrintf("Stage %i, sampler %i: ALPHA op %d, arg1 %d, arg2 %d, scale %d\n", stage, sampler, alphaOp, alphaArg1, alphaArg2, D3DState.TextureState.TextureCombineState[stage].alphaScale);
 
+	D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_RESULTARG, D3DTA_CURRENT );
 	D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_COLOROP, colorOp );
 	D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_COLORARG1, colorArg1 );
 	D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_COLORARG2, colorArg2 );
@@ -324,9 +326,10 @@ static void D3DState_SetTextureEnv( D3DState_t *state, int stage, int sampler, e
 {
 //	logPrintf("Stage %i, sampler %i: MODE 0x%x\n", stage, sampler, state->TextureState.textureEnvMode[stage]);
 
-	switch (state->TextureState.textureEnvMode[stage]) {
+	switch (state->TextureState.TextureCombineState[stage].envMode) {
 	case GL_MODULATE:
 //		logPrintf("Stage %i, sampler %i: GL_MODULATE\n", stage, sampler);
+		D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_RESULTARG, D3DTA_CURRENT );
 		D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_COLOROP, D3DTOP_MODULATE );
 		D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_COLORARG1, D3DTA_TEXTURE );
 		D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_COLORARG2, D3DTA_CURRENT );
@@ -336,6 +339,7 @@ static void D3DState_SetTextureEnv( D3DState_t *state, int stage, int sampler, e
 		break;
 	case GL_REPLACE:
 //		logPrintf("Stage %i, sampler %i: GL_REPLACE\n", stage, sampler);
+		D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_RESULTARG, D3DTA_CURRENT );
 		D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_COLOROP, D3DTOP_SELECTARG1 );
 		D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_COLORARG1, D3DTA_TEXTURE );
 		D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_ALPHAOP, D3DTOP_SELECTARG1 );
@@ -343,6 +347,7 @@ static void D3DState_SetTextureEnv( D3DState_t *state, int stage, int sampler, e
 		break;
 	case GL_DECAL:
 //		logPrintf("Stage %i, sampler %i: GL_DECAL\n", stage, sampler);
+		D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_RESULTARG, D3DTA_CURRENT );
 		D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_COLOROP, D3DTOP_BLENDTEXTUREALPHA );
 		D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_COLORARG1, D3DTA_TEXTURE );
 		D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_COLORARG2, D3DTA_CURRENT );
@@ -351,6 +356,7 @@ static void D3DState_SetTextureEnv( D3DState_t *state, int stage, int sampler, e
 		break;
 	case GL_BLEND:
 //		logPrintf("Stage %i, sampler %i: GL_BLEND\n", stage, sampler);
+		D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_RESULTARG, D3DTA_CURRENT );
 		D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_COLOROP, D3DTOP_LERP );
 		D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_COLORARG1, D3DTA_TFACTOR );
 		D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_COLORARG2, D3DTA_CURRENT );
@@ -368,6 +374,7 @@ static void D3DState_SetTextureEnv( D3DState_t *state, int stage, int sampler, e
 		break;
 	case GL_ADD:
 //		logPrintf("Stage %i, sampler %i: GL_ADD\n", stage, sampler);
+		D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_RESULTARG, D3DTA_CURRENT );
 		D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_COLOROP, D3DTOP_ADD );
 		D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_COLORARG1, D3DTA_TEXTURE );
 		D3DGlobal.pDevice->SetTextureStageState( sampler, D3DTSS_COLORARG2, D3DTA_CURRENT );
@@ -380,7 +387,7 @@ static void D3DState_SetTextureEnv( D3DState_t *state, int stage, int sampler, e
 		D3DState_SetTextureEnvCombine( state, stage, sampler );
 		break;
 	default:
-		logPrintf("D3DState_SetTextureEnv (stage %i): unsupported mode 0x%x\n", stage, state->TextureState.textureEnvMode[stage]);
+		logPrintf("D3DState_SetTextureEnv (stage %i): unsupported mode 0x%x\n", stage, state->TextureState.TextureCombineState[stage].envMode);
 		break;
 	}
 
@@ -395,9 +402,13 @@ void D3DState_SetTexture( D3DState_t *state )
 
 	DWORD currentSampler = 0;
 	HRESULT hr;
+	bool invalidCombiners = false;
+
+	D3DState_BuildTextureReferences( state );
 
 	for (int i = 0; i < D3DGlobal.maxActiveTMU; i++) {
-		if (!state->EnableState.textureEnabled[i])
+		if (!state->EnableState.textureEnabled[i] && 
+			!(state->TextureState.textureReference & (1<<i)))
 			continue;
 
 		bool matrixChanged = state->TextureState.textureEnableChanged || state->textureMatrixModified[i];
@@ -416,6 +427,7 @@ void D3DState_SetTexture( D3DState_t *state )
 
 		DWORD envModeChanged = state->TextureState.textureEnableChanged | state->TextureState.textureEnvModeChanged[i];
 		if (envModeChanged) {
+			state->TextureState.currentCombinerCount = 0;
 			for (int j = D3D_TEXTARGET_MAX-1; j >= 0; j--) {
 				if (!D3DState.EnableState.textureTargetEnabled[i][j]) 
 					continue;
@@ -424,6 +436,10 @@ void D3DState_SetTexture( D3DState_t *state )
 				bestTextureChanged = &D3DState.TextureState.textureChanged[i][j];
 				break;
 			}
+
+			if ( !D3DState_ValidateCombiner( state, i, currentSampler ) )
+				invalidCombiners = true;
+
 			D3DState_SetTextureEnv( state, i, currentSampler, bestTexture ? bestTexture->GetInternalFormat() : D3D_TEXTYPE_GENERIC );
 			state->TextureState.textureEnvModeChanged[i] = FALSE;
 		}
@@ -486,12 +502,21 @@ void D3DState_SetTexture( D3DState_t *state )
 		currentSampler++;
 	}
 
+	// if we've got "invalid" TNT combiners (e.g. texture as arg2), try to
+	// replace it with valid D3D combiners
+	if ( invalidCombiners )
+		D3DState_SetupCombiners( state );
+
 	if (state->TextureState.currentSamplerCount != currentSampler) {
 		for (DWORD i = currentSampler; i < state->TextureState.currentSamplerCount; i++) {
 			hr = D3DGlobal.pDevice->SetTexture( i, NULL );
 			if (FAILED(hr)) {
 				D3DGlobal.lastError = hr;
 				break;
+			}
+			if ( i >= state->TextureState.currentCombinerCount ) {
+				D3DGlobal.pDevice->SetTextureStageState( i, D3DTSS_COLOROP, D3DTOP_DISABLE );
+				D3DGlobal.pDevice->SetTextureStageState( i, D3DTSS_ALPHAOP, D3DTOP_DISABLE );
 			}
 		}
 		state->TextureState.currentSamplerCount = currentSampler;
@@ -646,8 +671,8 @@ void D3DState_SetDefaults( void )
 		D3DState.CurrentState.currentTexCoord[i][1] = 0.0f;
 		D3DState.CurrentState.currentTexCoord[i][2] = 0.0f;
 		D3DState.CurrentState.currentTexCoord[i][3] = 1.0f;
-		D3DState.TextureState.textureEnvMode[i] = GL_MODULATE;
 		D3DState.TextureState.textureEnvModeChanged[i] = TRUE;
+		D3DState.TextureState.TextureCombineState[i].envMode = GL_MODULATE;
 		D3DState.TextureState.TextureCombineState[i].colorOp = GL_MODULATE;
 		D3DState.TextureState.TextureCombineState[i].alphaOp = GL_MODULATE;
 		D3DState.TextureState.TextureCombineState[i].colorScale = 1;
@@ -974,6 +999,15 @@ static DWORD D3DState_IsEnabledState( GLenum cap )
 	case GL_MAP2_VERTEX_4:
 		return 0;
 
+	case GL_POLYGON_SMOOTH:
+	case GL_POLYGON_STIPPLE:
+	case GL_POINT_SMOOTH:
+		return 0;
+
+	case GL_INDEX_LOGIC_OP:
+	case GL_COLOR_LOGIC_OP:
+		return 0;
+
 	default:
 		logPrintf("WARNING: glIsEnabled( 0x%x ) unimplemented\n", cap);
 		D3DGlobal.lastError = E_INVALID_ENUM;
@@ -1187,6 +1221,19 @@ static void D3DState_EnableDisableState( GLenum cap, DWORD value )
 	case GL_MAP2_VERTEX_3:
 	case GL_MAP2_VERTEX_4:
 		logPrintf("WARNING: evaluators are not supported\n");
+		break;
+
+	case GL_POLYGON_SMOOTH:
+	case GL_POLYGON_STIPPLE:
+		if (value) logPrintf("WARNING: polygon smooth and stipple are not supported\n", cap);
+		break;
+	case GL_POINT_SMOOTH:
+		if (value) logPrintf("WARNING: point smooth is not supported\n", cap);
+		break;
+
+	case GL_INDEX_LOGIC_OP:
+	case GL_COLOR_LOGIC_OP:
+		if (value) logPrintf("WARNING: logic operations are not supported\n", cap);
 		break;
 
 	default:

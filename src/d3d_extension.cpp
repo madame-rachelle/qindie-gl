@@ -31,6 +31,11 @@
 //GL_ARB_vertex_buffer_object
 //GL_ARB_point_sprite
 
+OPENGL_API const char* WINAPI wglGetExtensionsStringARB( HDC hdc )
+{
+	return D3DGlobal.szWExtensions;
+}
+
 typedef struct glext_entry_point_s
 {
 	char *name;
@@ -160,6 +165,9 @@ static glext_entry_point_t glext_EntryPoints[] =
 	WGL_EXT_ENTRY_POINT( "EXT", "swap_control", wglSwapInterval ),
 	WGL_EXT_ENTRY_POINT( "EXT", "swap_control", wglGetSwapInterval ),
 
+	//WGL_ARB_extensions_string
+	WGL_EXT_ENTRY_POINT( "ARB", "extensions_string", wglGetExtensionsStringARB ),
+
 	{ NULL, NULL }
 };
 
@@ -210,6 +218,7 @@ void D3DExtension_BuildExtensionsString( void )
 	assert( D3DGlobal.pDevice != NULL );
 
 	CExtensionBuf ExtensionBuf;
+	CExtensionBuf WExtensionBuf;
 	int checkCaps;
 	bool bCombineSupportEXT = true;
 	bool bCombineSupportARB = true;
@@ -338,9 +347,15 @@ void D3DExtension_BuildExtensionsString( void )
 	ExtensionBuf.AddExtension( "GL_SUN_multi_draw_arrays" );
 
 	//we implement it at driver level
+	ExtensionBuf.AddExtension( "WGL_ARB_extensions_string" );
 	ExtensionBuf.AddExtension( "WGL_EXT_swap_control" );
 
+	//add WGL extensions
+	WExtensionBuf.AddExtension( "WGL_ARB_extensions_string" );
+	WExtensionBuf.AddExtension( "WGL_EXT_swap_control" );
+
 	D3DGlobal.szExtensions = ExtensionBuf.CopyBuffer();
+	D3DGlobal.szWExtensions = WExtensionBuf.CopyBuffer();
 }
 
 //=========================================
@@ -384,3 +399,4 @@ OPENGL_API PROC WINAPI wrap_wglGetDefaultProcAddress( LPCSTR s )
 {
 	return wrap_wglGetProcAddress(s);
 }
+

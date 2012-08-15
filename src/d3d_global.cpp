@@ -98,6 +98,8 @@ void D3DGlobal_Cleanup( bool cleanupAll )
 {
 	logPrintf("--- Cleanup( %s ) ---\n", cleanupAll ? "all" : "partial" );
 
+	UTIL_FreeString(D3DGlobal.szWExtensions);
+	D3DGlobal.szWExtensions = NULL;
 	UTIL_FreeString(D3DGlobal.szExtensions);
 	D3DGlobal.szExtensions = NULL;
 	UTIL_FreeString(D3DGlobal.szRendererName);
@@ -634,7 +636,7 @@ static bool D3DGlobal_SetupPresentParams( int width, int height, int bpp, BOOL w
 
 OPENGL_API HGLRC WINAPI wrap_wglCreateContext( HDC hdc )
 {
-	logPrintf("wrap_wglCreateContext( %x )\n", hdc);
+	//logPrintf("wrap_wglCreateContext( %x )\n", hdc);
 
 	if (D3DGlobal.hGLRC)	//don't create multiple contexts
 	{
@@ -918,7 +920,7 @@ OPENGL_API HDC WINAPI wrap_wglGetCurrentDC( void )
 
 OPENGL_API BOOL WINAPI wrap_wglMakeCurrent(HDC hdc, HGLRC hglrc)
 {
-	logPrintf("wrap_wglMakeCurrent( %x, %x )\n", hdc, hglrc);
+	//logPrintf("wrap_wglMakeCurrent( %x, %x )\n", hdc, hglrc);
 
 	if (hglrc != NULL && hdc != NULL) {
 		if (!D3DGlobal.pDevice)

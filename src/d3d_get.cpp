@@ -111,7 +111,10 @@ template<typename T> static void glGet(GLenum pname, T *params)
 	case GL_MAX_TEXTURE_COORDS_ARB:
 	case GL_MAX_TEXTURE_UNITS_ARB:
 	case GL_MAX_TEXTURES_SGIS:
-		params[0] = (T)D3DGlobal.maxActiveTMU;
+		if (!D3DGlobal_GetRegistryValue("GL_ARB_multitexture", "Extensions"))
+			params[0] = (T)1;
+		else
+			params[0] = (T)D3DGlobal.maxActiveTMU;
 		break;
 	case GL_SELECTED_TEXTURE_SGIS:
 		params[0] = (T)(D3DState.TextureState.currentTMU + GL_TEXTURE0_SGIS);

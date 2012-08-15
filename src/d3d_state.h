@@ -139,15 +139,16 @@ typedef struct D3DState_s
 	struct {
 		DWORD			currentTMU;
 		DWORD			currentSamplerCount;
+		DWORD			currentCombinerCount;
 		D3DTextureObject* currentTexture[MAX_D3D_TMU][D3D_TEXTARGET_MAX];
 		DWORD			textureSamplerStateChanged;
 		DWORD			textureEnableChanged;
 		DWORD			textureChanged[MAX_D3D_TMU][D3D_TEXTARGET_MAX];
 		DWORD			textureStateChanged[MAX_D3D_TMU];
-		GLenum			textureEnvMode[MAX_D3D_TMU];
 		FLOAT			textureLodBias[MAX_D3D_TMU];
 		DWORD			textureEnvModeChanged[MAX_D3D_TMU];
 		DWORD			textureEnvColor;
+		DWORD			textureReference;
 		struct {
 			GLenum		mode;
 			FLOAT		objectPlane[4];
@@ -157,6 +158,9 @@ typedef struct D3DState_s
 			pfnTrNormal trNormal;
 		} TexGen[MAX_D3D_TMU][4];
 		struct {
+			GLenum		envMode;
+			DWORD		colorScale;
+			DWORD		alphaScale;
 			GLenum		colorOp;
 			GLenum		colorArg1;
 			GLenum		colorArg2;
@@ -171,8 +175,6 @@ typedef struct D3DState_s
 			GLenum		alphaOperand1;
 			GLenum		alphaOperand2;
 			GLenum		alphaOperand3;
-			DWORD		colorScale;
-			DWORD		alphaScale;
 		} TextureCombineState[MAX_D3D_TMU];
 	} TextureState;
 	struct {
