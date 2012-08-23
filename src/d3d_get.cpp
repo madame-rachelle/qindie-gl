@@ -414,7 +414,13 @@ template<typename T> static void glGet(GLenum pname, T *params)
 		return; 
 	case GL_MAX_TEXTURE_STACK_DEPTH:
 		params[0] = (T)D3DGlobal.textureMatrixStack[D3DState.TextureState.currentTMU]->max_stack_depth();
-		return; 
+		return;
+	case GL_BLEND_SRC:
+		params[0] = (T)(D3DState.ColorBufferState.glBlendSrc);
+		break;
+	case GL_BLEND_DST:
+		params[0] = (T)(D3DState.ColorBufferState.glBlendDst);
+		break;
 
 	case GL_VIEWPORT:
 		params[0] = (T)D3DState.viewport.X;

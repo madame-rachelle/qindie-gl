@@ -47,14 +47,15 @@ OPENGL_API void WINAPI glAlphaFunc( GLenum func, GLclampf ref )
 
 OPENGL_API void WINAPI glBlendFunc( GLenum sfactor, GLenum dfactor )
 {
-	DWORD sfunc = UTIL_GLtoD3DBlendFunc(sfactor);
-	if (sfunc != D3DState.ColorBufferState.alphaBlendSrcFunc) {
+	if (D3DState.ColorBufferState.glBlendSrc != sfactor) {
+		D3DState.ColorBufferState.glBlendSrc = sfactor;
+		DWORD sfunc = UTIL_GLtoD3DBlendFunc(sfactor);
 		D3DState.ColorBufferState.alphaBlendSrcFunc = sfunc;
 		D3DState_SetRenderState( D3DRS_SRCBLEND, sfunc );
 	}
-
-	DWORD dfunc = UTIL_GLtoD3DBlendFunc(dfactor);
-	if (dfunc != D3DState.ColorBufferState.alphaBlendDstFunc) {
+	if (D3DState.ColorBufferState.glBlendDst != dfactor) {
+		D3DState.ColorBufferState.glBlendDst = dfactor;
+		DWORD dfunc = UTIL_GLtoD3DBlendFunc(dfactor);
 		D3DState.ColorBufferState.alphaBlendDstFunc = dfunc;
 		D3DState_SetRenderState( D3DRS_DESTBLEND, dfunc );
 	}

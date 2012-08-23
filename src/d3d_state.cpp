@@ -756,6 +756,8 @@ void D3DState_SetDefaults( void )
 	D3DState.currentMatrixStack = D3DGlobal.modelviewMatrixStack;
 	D3DState.currentMatrixModified = &D3DState.modelViewMatrixModified;
 
+	D3DState.ColorBufferState.glBlendDst = GL_ONE;
+	D3DState.ColorBufferState.glBlendSrc = GL_ONE;
 	D3DState.ColorBufferState.alphaBlendDstFunc = D3DBLEND_ZERO;
 	D3DState.ColorBufferState.alphaBlendSrcFunc = D3DBLEND_ONE;
 	D3DState.ColorBufferState.alphaBlendOp = D3DBLENDOP_ADD;
@@ -1234,6 +1236,10 @@ static void D3DState_EnableDisableState( GLenum cap, DWORD value )
 	case GL_INDEX_LOGIC_OP:
 	case GL_COLOR_LOGIC_OP:
 		if (value) logPrintf("WARNING: logic operations are not supported\n", cap);
+		break;
+
+	case GL_MODULATE:
+		//Kingpin keeps calling this... wtf?
 		break;
 
 	default:

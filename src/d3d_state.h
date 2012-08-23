@@ -45,6 +45,8 @@ typedef struct D3DState_s
 		DWORD			alphaBlendOp;
 		D3DCOLOR		clearColor;
 		DWORD			colorWriteMask;
+		GLenum			glBlendSrc;
+		GLenum			glBlendDst;
 	} ColorBufferState;
 	struct {
 		DWORD			currentColor;
