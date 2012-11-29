@@ -82,6 +82,7 @@ OPENGL_API GLenum WINAPI glGetError( void )
 	case E_INVALID_ENUM:
 		oglErrorCode = GL_INVALID_ENUM;
 		break;
+	case E_INVALID_OPERATION:
 	default:
 		oglErrorCode = GL_INVALID_OPERATION;
 		break;

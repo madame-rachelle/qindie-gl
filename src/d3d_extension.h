@@ -106,5 +106,12 @@ extern OPENGL_API void WINAPI glLockArrays( GLint first, GLsizei count );
 extern OPENGL_API void WINAPI glUnlockArrays( void );
 extern OPENGL_API void WINAPI glBlendColor( GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha );
 extern OPENGL_API void WINAPI glBlendEquation( GLenum mode );
+extern OPENGL_API void WINAPI glCompressedTexImage1D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLsizei imageSize, const GLvoid *pixels);
+extern OPENGL_API void WINAPI glCompressedTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const GLvoid *pixels);
+extern OPENGL_API void WINAPI glCompressedTexImage3D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const GLvoid *pixels);
+extern OPENGL_API void WINAPI glCompressedTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const GLvoid *pixels);
+extern OPENGL_API void WINAPI glCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const GLvoid *pixels);
+extern OPENGL_API void WINAPI glCompressedTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const GLvoid *pixels);
+extern OPENGL_API void WINAPI glGetCompressedTexImage(GLenum target, GLint level, GLvoid *img);
 
 #endif //QINDIEGL_D3D_EXTENSION_H

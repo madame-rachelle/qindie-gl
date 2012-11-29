@@ -144,6 +144,7 @@ typedef struct D3DGlobal_s
 	int						depthBits;
 	int						stencilBits;
 	int						multiSamples;
+	int						supportsS3TC;
 	struct {
 		DWORD				multisample;
 		DWORD				projectionFix;

@@ -33,6 +33,7 @@ public:
 	HRESULT FillTextureLevel( GLint cubeface, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const GLvoid *pixels );
 	HRESULT FillTextureSubLevel( GLint cubeface, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const GLvoid *pixels );
 	HRESULT CopyTextureSubLevel( GLint cubeface, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height );
+	HRESULT FillCompressedTextureLevel( GLint cubeface, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLsizei imageSize, const GLvoid *pixels );
 	HRESULT GetTexImage( GLint cubeface, GLint level, GLenum format,  GLenum type,  GLvoid *pixels );
 	HRESULT DumpTexture( void );
 	void CheckMipmapAutogen( void );

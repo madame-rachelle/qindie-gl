@@ -160,8 +160,8 @@ static void TexGenFunc_SphereMap_SSE( int stage, int coord, const GLfloat *verte
 
 		memcpy( sse_vertex, vertex, sizeof(float)*3 );
 		memcpy( sse_normal, normal, sizeof(float)*3 );
-		*(int*)&sse_vertex[4] = 0;
-		*(int*)&sse_normal[4] = 0;
+		*(int*)&sse_vertex[3] = 0;
+		*(int*)&sse_normal[3] = 0;
 
 		_asm {
 			movaps	xmm1, xmmword ptr[sse_vertex]
@@ -225,8 +225,8 @@ static void TexGenFunc_ReflectionMap_SSE( int stage, int coord, const GLfloat *v
 
 		memcpy( sse_vertex, vertex, sizeof(float)*3 );
 		memcpy( sse_normal, normal, sizeof(float)*3 );
-		*(int*)&sse_vertex[4] = 0;
-		*(int*)&sse_normal[4] = 0;
+		*(int*)&sse_vertex[3] = 0;
+		*(int*)&sse_normal[3] = 0;
 
 		_asm {
 			movaps	xmm1, xmmword ptr[sse_vertex]

@@ -629,6 +629,15 @@ static bool D3DGlobal_SetupPresentParams( int width, int height, int bpp, BOOL w
 		D3DGlobal.multiSamples = currentSamples;
 	}
 
+	// check for S3TC
+	D3DGlobal.supportsS3TC = 0;
+	if ( D3DGlobal_CheckTextureFormat( D3DFMT_DXT1, D3DGlobal.hCurrentMode.Format ) &&
+		 D3DGlobal_CheckTextureFormat( D3DFMT_DXT3, D3DGlobal.hCurrentMode.Format ) &&
+		 D3DGlobal_CheckTextureFormat( D3DFMT_DXT5, D3DGlobal.hCurrentMode.Format ) ) {
+		logPrintf("S3TC texture compression is supported\n");
+		D3DGlobal.supportsS3TC = 1;
+	}
+
 	return true;
 }
 

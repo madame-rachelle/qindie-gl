@@ -548,6 +548,55 @@ HRESULT D3DTextureObject :: CopyTextureSubLevel( GLint cubeface, GLint level, GL
 	return hr;
 }
 
+HRESULT D3DTextureObject :: FillCompressedTextureLevel( GLint cubeface, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLsizei imageSize, const GLvoid *pixels )
+{
+	HRESULT hr;
+	GLubyte *dstdata;
+	GLint pitch;
+	GLint pitch2;
+
+	if (!pixels)
+		return S_OK;
+
+	if (m_target == GL_TEXTURE_3D_EXT) {
+		D3DLOCKED_BOX lockrect;
+		hr = m_pD3DVolumeTexture->LockBox( level, &lockrect, NULL, 0 );
+		if (FAILED(hr)) return hr;
+
+		dstdata = (GLubyte*)lockrect.pBits;
+		pitch = lockrect.RowPitch;
+		pitch2 = lockrect.SlicePitch;
+	} else if (m_target == GL_TEXTURE_CUBE_MAP_ARB) {
+		D3DLOCKED_RECT lockrect;
+		hr = m_pD3DCubeTexture->LockRect( (D3DCUBEMAP_FACES)cubeface, level, &lockrect, NULL, 0 );
+		if (FAILED(hr)) return hr;
+
+		dstdata = (GLubyte*)lockrect.pBits;
+		pitch = lockrect.Pitch;
+		pitch2 = 0;
+	} else {
+		D3DLOCKED_RECT lockrect;
+		hr = m_pD3DTexture->LockRect( level, &lockrect, NULL, 0 );
+		if (FAILED(hr)) return hr;
+
+		dstdata = (GLubyte*)lockrect.pBits;
+		pitch = lockrect.Pitch;
+		pitch2 = 0;
+	}
+
+	memcpy( dstdata, pixels, imageSize );
+
+	if (m_target == GL_TEXTURE_3D_EXT) {
+		hr = m_pD3DVolumeTexture->UnlockBox( level );
+	} else if (m_target == GL_TEXTURE_CUBE_MAP_ARB) {
+		hr = m_pD3DCubeTexture->UnlockRect( (D3DCUBEMAP_FACES)cubeface, level );
+	} else {
+		hr = m_pD3DTexture->UnlockRect( level );
+	}
+
+	return hr;
+}
+
 HRESULT D3DTextureObject :: GetTexImage( GLint cubeface, GLint level, GLenum format,  GLenum type,  GLvoid *pixels )
 {
 	HRESULT hr;
@@ -863,6 +912,108 @@ static void D3DTex_LoadSubImage(GLenum target, GLint level, GLint xoffset, GLint
 	}
 }
 
+static void D3DTex_LoadCompressedImage(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const GLvoid *pixels)
+{
+	if (!D3DGlobal.supportsS3TC) {
+		logPrintf("WARNING: S3TC texture compression is not supported\n");
+		return;
+	}
+	if ((width % 4) || (height % 4)) {
+		D3DGlobal.lastError = E_INVALID_OPERATION;
+		return;
+	}
+
+	int targetIndex = UTIL_GLTextureTargettoInternalIndex( target );
+	if (targetIndex < 0 || targetIndex >= D3D_TEXTARGET_MAX) {
+		D3DGlobal.lastError = E_INVALIDARG;
+		return;
+	}
+	int cubeFace = 0;
+	if (targetIndex == D3D_TEXTARGET_CUBE)
+		cubeFace = target - GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB;
+	
+	int currentTMU = D3DState.TextureState.currentTMU;
+	D3DTextureObject *pTexture = D3DState.TextureState.currentTexture[currentTMU][targetIndex];
+	assert(pTexture != NULL);
+
+	if ( level == 0 ) 
+	{
+		D3DFORMAT d3dFormat;
+		switch (internalformat) {
+		case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+		case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+			d3dFormat = D3DFMT_DXT1;
+			break;
+		case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+			d3dFormat = D3DFMT_DXT3;
+			break;
+		case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+			d3dFormat = D3DFMT_DXT5;
+			break;
+		default:
+			logPrintf("WARNING: Compressed texture internal format 0x%x is not supported\n", internalformat);
+			D3DGlobal.lastError = E_INVALIDARG;
+			return;
+		}
+
+		if (!cubeFace)
+		{
+			D3DState.TextureState.currentTexture[currentTMU][targetIndex]->FreeD3DTexture();
+			HRESULT hr = D3DState.TextureState.currentTexture[currentTMU][targetIndex]->CreateD3DTexture( target, width, height, depth, border, d3dFormat, false );
+			if (FAILED(hr)) {
+				D3DGlobal.lastError = hr;
+				return;
+			}
+		}
+
+		HRESULT hr = pTexture->FillCompressedTextureLevel( cubeFace, 0, internalformat, width, height, depth, imageSize, pixels );
+		if (FAILED(hr)) {
+			D3DGlobal.lastError = hr;
+			return;
+		}
+		if (pixels) pTexture->CheckMipmapAutogen();
+	}
+	else if ( level == 1 )
+	{
+		if (!cubeFace) 
+		{
+			HRESULT hr = pTexture->RecreateD3DTexture( true );
+			if (FAILED(hr)) {
+				D3DGlobal.lastError = hr;
+				return;
+			}
+		}
+		HRESULT hr = pTexture->FillCompressedTextureLevel( cubeFace, 1, internalformat, width, height, depth, imageSize, pixels );
+		if (FAILED(hr)) {
+			D3DGlobal.lastError = hr;
+			return;
+		}
+	}
+	else
+	{
+		HRESULT hr = pTexture->FillCompressedTextureLevel( cubeFace, level, internalformat, width, height, depth, imageSize, pixels );
+		if (FAILED(hr)) {
+			D3DGlobal.lastError = hr;
+			return;
+		}
+	}
+}
+
+static void D3DTex_LoadCompressedSubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const GLvoid *pixels)
+{
+	if (!D3DGlobal.supportsS3TC) {
+		logPrintf("WARNING: S3TC texture compression is not supported\n");
+		return;
+	}
+	if ((width % 4) || (height % 4) || (xoffset % 4) || (yoffset % 4)) {
+		D3DGlobal.lastError = E_INVALID_OPERATION;
+		return;
+	}
+
+	//!TODO
+	logPrintf("WARNING: D3DTex_LoadCompressedSubImage\n");
+}
+
 static void D3DTex_CopySubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height)
 {
 	if (D3DGlobal.skipCopyImage) {
@@ -1014,6 +1165,31 @@ OPENGL_API void WINAPI glTexSubImage3D(GLenum target, GLint level, GLint xoffset
 {
 	D3DTex_LoadSubImage( target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels );
 }
+OPENGL_API void WINAPI glCompressedTexImage1D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLint border, GLsizei imageSize, const GLvoid *pixels)
+{
+	//refer 1d-textures to as 2d-textures with height = 1
+	D3DTex_LoadCompressedImage( target, level, internalformat, width, 1, 1, border, imageSize, pixels );
+}
+OPENGL_API void WINAPI glCompressedTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const GLvoid *pixels)
+{
+	D3DTex_LoadCompressedImage( target, level, internalformat, width, height, 1, border, imageSize, pixels );
+}
+OPENGL_API void WINAPI glCompressedTexImage3D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const GLvoid *pixels)
+{
+	D3DTex_LoadCompressedImage( target, level, internalformat, width, height, depth, border, imageSize, pixels );
+}
+OPENGL_API void WINAPI glCompressedTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const GLvoid *pixels)
+{
+	D3DTex_LoadCompressedSubImage( target, level, xoffset, 0, 0, width, 1, 1, format, imageSize, pixels );
+}
+OPENGL_API void WINAPI glCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const GLvoid *pixels)
+{
+	D3DTex_LoadCompressedSubImage( target, level, xoffset, yoffset, 0, width, height, 1, format, imageSize, pixels );
+}
+OPENGL_API void WINAPI glCompressedTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const GLvoid *pixels)
+{
+	D3DTex_LoadCompressedSubImage( target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, pixels );
+}
 
 OPENGL_API void WINAPI glCopyTexImage1D(GLenum target,  GLint level,  GLenum internalFormat,  GLint x,  GLint y,  GLsizei width,  GLint border)
 {
@@ -1062,6 +1238,32 @@ OPENGL_API void WINAPI glGetTexImage (GLenum target,  GLint level,  GLenum forma
 
 	HRESULT hr = pTexture->GetTexImage( cubeFace, level, format, type, pixels );
 	if (FAILED(hr)) D3DGlobal.lastError = hr;
+}
+
+OPENGL_API void WINAPI glGetCompressedTexImage(GLenum target, GLint level, GLvoid *img)
+{
+	int targetIndex = UTIL_GLTextureTargettoInternalIndex( target );
+	if (targetIndex < 0 || targetIndex >= D3D_TEXTARGET_MAX) {
+		D3DGlobal.lastError = E_INVALIDARG;
+		return;
+	}
+	int cubeFace = 0;
+	if (targetIndex == D3D_TEXTARGET_CUBE)
+		cubeFace = target - GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB;
+
+	int currentTMU = D3DState.TextureState.currentTMU;
+	D3DTextureObject *pTexture = D3DState.TextureState.currentTexture[currentTMU][targetIndex];
+	if (!pTexture) {
+		logPrintf("WARNING: glGetCompressedTexImage(0x%x, %i) - texture was not uploaded\n", target, level);
+		return;
+	}
+
+	if (!D3DGlobal.supportsS3TC) {
+		logPrintf("WARNING: S3TC texture compression is not supported\n");
+		return;
+	}
+
+	//!TODO
 }
 
 OPENGL_API void WINAPI glTexParameterfv(GLenum target, GLenum pname, const GLfloat *params)
